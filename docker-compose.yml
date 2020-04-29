@@ -1,0 +1,35 @@
+version: '2'
+services:
+  nginx:
+    image: nginx:1.17
+    container_name: vote-nginx
+    restart: always
+    ports:
+      - "3081:80"
+    # volumes:
+    #   - "./nginx:/etc/nginx/conf.d/"
+    depends_on: 
+      - api
+  api:
+    build: ./golang_docker/
+    container_name: vote-api
+    restart: always
+    working_dir: "/.go/src/github.com/kindaidensan/vote-system/"
+    command: bash 
+    ports:
+      - "8041:8040"
+    volumes:
+      - "./server:/.go/src/github.com/kindaidensan/vote-system/"
+    depends_on:
+      - mysql
+    tty: true
+  mysql:
+    build: ./mysql_docker/
+    container_name: vote-mysql
+    restart: always
+    environment:
+      - "MYSQL_ROOT_PASSWORD=densan"
+      - "TZ=Asia/Tokyo"
+    volumes:
+      - "./mysql:/var/lib/mysql"
+      - "./mysql_init:/docker-entrypoint-initdb.d"
