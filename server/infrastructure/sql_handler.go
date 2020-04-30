@@ -1,0 +1,56 @@
+package infrastructure
+
+import (
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
+	"log"
+	"strconv"
+)
+
+type SqlHandler struct {
+	db *sql.DB
+}
+
+type SqlConfig struct {
+	User string  `toml:"user"`
+	Password string  `toml:"password"`
+	Host string  `toml:"host"`
+	Port string  `toml:"port"`
+	Database string  `toml:"database"`
+}
+
+func NewSqlHandler(config SqlConfig) *SqlHandler {
+	db, err := sql.Open("mysql", config.User+":"+config.Password+"@tcp("+config.Host+":"+config.Port+")/"+config.Database)
+	if err != nil {
+		log.Print("faild connect mysql : %s", err.Error())
+		return nil
+	}
+	sqlHandler := SqlHandler {
+		db: db,
+	}
+	return &sqlHandler
+}
+
+func (handler *SqlHandler) Query(query string) (*sql.Rows, error){
+	rows, err := handler.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (handler *SqlHandler) Insert(query string, value ...interface{}) (string, error) {
+	ins, err := handler.db.Prepare(query)
+	if err != nil {
+		return "", err
+	}
+	ret, err := ins.Exec(value...)
+	if err != nil {
+		return "", err
+	}
+	id, err := ret.LastInsertId()
+	if err != nil {
+		return "", nil
+	}
+	return strconv.Itoa(int(id)), nil
+}
