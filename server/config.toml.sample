@@ -1,0 +1,6 @@
+[SqlConfig]
+user = "root"
+password = "densan"
+host = "mysql"
+port = "3306"
+database = "vote"
